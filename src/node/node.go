@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	proto "src/service"
+
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type Node struct {
@@ -17,13 +19,13 @@ type Node struct {
 }
 
 // Setting up node servers at a given port.
-func (n *Node) ServerSetup(port string) {
+func (n *Node) ServerSetup(port string, cred credentials.TransportCredentials) {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Server failed to listen af port %s :: %v", port, err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.Creds(cred))
 	proto.RegisterServiceServer(grpcServer, n)
 
 	log.Printf("Server listens at %v", lis.Addr())
@@ -34,15 +36,17 @@ func (n *Node) ServerSetup(port string) {
 }
 
 // Connecting/dialing the given server ports, thus, creating a node client connection.
-func (n *Node) ConnectToPeer(portOfOtherPeers string) {
+func (n *Node) ConnectToPeer(portOfOtherPeers string, cred credentials.TransportCredentials) {
 	ports := strings.Split(portOfOtherPeers, ",")
-	
+
 	for i := 0; i < len(ports); i++ {
 		log.Printf("Connecting to peer %s", ports[i])
-		conn, err := grpc.Dial("localhost:" + ports[i], grpc.WithInsecure())
+
+		conn, err := grpc.Dial("localhost:" + ports[i], grpc.WithTransportCredentials(cred))
 		if err != nil {
 			log.Fatalf("Error when dialing :: %s", err)
 		}
+
 		n.ClientConn[ports[i]] = proto.NewServiceClient(conn)
 	}
 }

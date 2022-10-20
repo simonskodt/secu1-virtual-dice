@@ -4,12 +4,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"src/logic"
 	"src/node"
 	proto "src/service"
 
@@ -17,12 +17,21 @@ import (
 )
 
 func main() {
-	args := os.Args
-	port := args[1]
-	portOfOtherPeers := args[2]
-	name := strings.Trim(args[3], "`")
+	var initiateDiceRoll = flag.Bool("init", false, "The node that starts the die throw")
+	flag.Parse()
+	var offset int
 
-	log.Printf("NODE :: %v INITIATED", strings.ToUpper(name))
+	if (*initiateDiceRoll) {
+		offset = 2
+	}
+	
+	args := os.Args
+	port := args[1+offset]
+	portOfOtherPeers := args[2+offset]
+	name := strings.Trim(args[3+offset], "`")
+
+	fmt.Println("### SETUP NODE ###")
+	log.Printf("%v INITIATED at port %v", strings.ToUpper(name), strings.Trim(port, ":"))
 
 	n := node.Node{
 		Name:       name,
@@ -34,9 +43,15 @@ func main() {
 	
 	go n.ServerSetup(port, tlsCredentials)
 	n.ConnectToPeer(portOfOtherPeers, tlsCredentials)
+
+	fmt.Println("### ROLLING DICE ###")
+
 	for i := range n.ClientConn {
 		conn := n.ClientConn[i]
-		logic.InitiateRequest(conn)
+		if (*initiateDiceRoll) {
+			// Sending initial request from nodes with the flag -init (initiateDiceRoll) set to true. 
+			n.InitiateRequest(conn)
+		}
 	}
 	
 	for {} // Prevent termination

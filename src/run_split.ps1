@@ -1,1 +1,1 @@
-wt.exe PowerShell go run . :9000 9001 Alice `; split-pane -V PowerShell go run . :9001 9000 Bob`
+wt.exe PowerShell go run . -init true :9000 9001 Alice`; split-pane -V PowerShell go run . :9001 9000 Bob`

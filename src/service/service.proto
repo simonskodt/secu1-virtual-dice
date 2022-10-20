@@ -7,16 +7,15 @@ option go_package = ".proto";
 
 package proto;
 
-message DiceRequest {
-    int32 public_key = 1;
-    int32 message    = 2;
+message Commitment {
+    string name       = 1;
+    string commitment = 2;
 }
 
 message DiceResponse {
-    int32 public_key   = 1;
-    int32 dice_outcome = 2;
+    bool received = 1;
 }
 
 service Service {
-    rpc RollDice(DiceRequest) returns (DiceResponse);
+    rpc RollDice(Commitment) returns (DiceResponse);
 }

@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
-	RollDice(ctx context.Context, in *DiceRequest, opts ...grpc.CallOption) (*DiceResponse, error)
+	RollDice(ctx context.Context, in *Commitment, opts ...grpc.CallOption) (*DiceResponse, error)
 }
 
 type serviceClient struct {
@@ -33,7 +33,7 @@ func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
 	return &serviceClient{cc}
 }
 
-func (c *serviceClient) RollDice(ctx context.Context, in *DiceRequest, opts ...grpc.CallOption) (*DiceResponse, error) {
+func (c *serviceClient) RollDice(ctx context.Context, in *Commitment, opts ...grpc.CallOption) (*DiceResponse, error) {
 	out := new(DiceResponse)
 	err := c.cc.Invoke(ctx, "/proto.Service/RollDice", in, out, opts...)
 	if err != nil {
@@ -46,7 +46,7 @@ func (c *serviceClient) RollDice(ctx context.Context, in *DiceRequest, opts ...g
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
-	RollDice(context.Context, *DiceRequest) (*DiceResponse, error)
+	RollDice(context.Context, *Commitment) (*DiceResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -54,7 +54,7 @@ type ServiceServer interface {
 type UnimplementedServiceServer struct {
 }
 
-func (UnimplementedServiceServer) RollDice(context.Context, *DiceRequest) (*DiceResponse, error) {
+func (UnimplementedServiceServer) RollDice(context.Context, *Commitment) (*DiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollDice not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
@@ -71,7 +71,7 @@ func RegisterServiceServer(s grpc.ServiceRegistrar, srv ServiceServer) {
 }
 
 func _Service_RollDice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiceRequest)
+	in := new(Commitment)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func _Service_RollDice_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/proto.Service/RollDice",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).RollDice(ctx, req.(*DiceRequest))
+		return srv.(ServiceServer).RollDice(ctx, req.(*Commitment))
 	}
 	return interceptor(ctx, in, info, handler)
 }

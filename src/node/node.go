@@ -7,11 +7,15 @@ import (
 	"strings"
 
 	proto "src/service"
+	util "src/utilities"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
+const bitStrLength = 256
+
+// General accessible information on a node struct: name and the other client connections.
 type Node struct {
 	proto.UnimplementedServiceServer
 	Name 	     string
@@ -28,8 +32,6 @@ func (n *Node) ServerSetup(port string, cred credentials.TransportCredentials) {
 	grpcServer := grpc.NewServer(grpc.Creds(cred))
 	proto.RegisterServiceServer(grpcServer, n)
 
-	log.Printf("Server listens at %v", lis.Addr())
-
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Servers failed to serve :: %v", err)
 	}
@@ -40,7 +42,7 @@ func (n *Node) ConnectToPeer(portOfOtherPeers string, cred credentials.Transport
 	ports := strings.Split(portOfOtherPeers, ",")
 
 	for i := 0; i < len(ports); i++ {
-		log.Printf("Connecting to peer %s", ports[i])
+		log.Printf("Connecting to peer %s\n\n", ports[i])
 
 		conn, err := grpc.Dial("localhost:" + ports[i], grpc.WithTransportCredentials(cred))
 		if err != nil {
@@ -51,15 +53,44 @@ func (n *Node) ConnectToPeer(portOfOtherPeers string, cred credentials.Transport
 	}
 }
 
-// The Remove Procedure Call (RPC) implementation that receives the request from a
-// node in order to send a response back the nodes clientside.
-func (n *Node) RollDice(ctx context.Context, request *proto.DiceRequest) (*proto.DiceResponse, error) {
-	diceR := proto.DiceResponse{
-		PublicKey: request.PublicKey + 1000,
-		DiceOutcome: request.Message - 1000,
+// Generating the specific request for a specific node that invokes the identical method
+// signature on the serverside. Here, the the response is received.
+func (n *Node) InitiateRequest(c proto.ServiceClient) {
+	
+	// Roll dice, resulting in a random number.
+	diceRoll := util.GenerateRandDiceRoll()
+	log.Printf("%s rolled dice is %v", n.Name, diceRoll)
+
+	// Random k-bit string
+	randStr := util.GenerateRandBitStr(bitStrLength)
+	
+	// Create commitment
+	commCat := util.ConcatStrings(util.FormatInt(diceRoll), randStr)
+
+	// Hashing (encoding) of k-bit string and the rolled dice.
+	// TODO
+	
+	comm := proto.Commitment{
+		Name:       n.Name,
+		Commitment: commCat,
 	}
 
-	log.Printf("The given request is %v", request.Message)
+	response, err := c.RollDice(context.Background(), &comm)
+	if (err != nil) {
+		log.Fatalf("Server crashed :: %s", err)
+	}
+
+	log.Printf("Received: %v", response.Received)
+}
+
+// The Remove Procedure Call (RPC) implementation that receives the request from a
+// node in order to send a response back the nodes clientside.
+func (n *Node) RollDice(ctx context.Context, request *proto.Commitment) (*proto.DiceResponse, error) {
+	diceR := proto.DiceResponse{
+		Received: true,
+	}
+
+	log.Printf("The commitment from %s is %v", request.Name, request.Commitment)
 
 	return &diceR, nil
 }

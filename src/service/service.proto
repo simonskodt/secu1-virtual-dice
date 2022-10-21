@@ -1,21 +1,40 @@
-// Command for running file
+// Command for generating pb.go files
 // protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative service/service.proto
 
 syntax = "proto3";
-
 option go_package = ".proto";
-
 package proto;
 
+// Initial commitment sent from Alice to Bob. This includes the name of the
+// node that commits and the hashed commitment.
 message Commitment {
     string name       = 1;
     string commitment = 2;
 }
 
+// The response from Bob is his raw dice roll.
 message DiceResponse {
-    bool received = 1;
+    string name      = 1;
+    int32 dice_roll  = 2;
 }
 
+// Another RPC follows which is Alice's raw dice roll and random k-bit string
+// values.
+message CommitmentKeys {
+    string name             = 1;
+    int32 dice_roll         = 2;
+    string random_k_bit_str = 3;
+}
+
+// Bob replies Alice as to whether of not the commited keys (after being hashed)
+// produces the same concatted string as the first initial commitment.
+message CorrectKeysResponse {
+    string name   = 1;
+    bool approved = 2;
+}
+
+// The two RPC calls that Alice will initiate, and Bob will respond to.
 service Service {
     rpc RollDice(Commitment) returns (DiceResponse);
+    rpc CheckKeys(CommitmentKeys) returns (CorrectKeysResponse);
 }

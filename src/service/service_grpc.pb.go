@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
 	RollDice(ctx context.Context, in *Commitment, opts ...grpc.CallOption) (*DiceResponse, error)
+	CheckKeys(ctx context.Context, in *CommitmentKeys, opts ...grpc.CallOption) (*CorrectKeysResponse, error)
 }
 
 type serviceClient struct {
@@ -42,11 +43,21 @@ func (c *serviceClient) RollDice(ctx context.Context, in *Commitment, opts ...gr
 	return out, nil
 }
 
+func (c *serviceClient) CheckKeys(ctx context.Context, in *CommitmentKeys, opts ...grpc.CallOption) (*CorrectKeysResponse, error) {
+	out := new(CorrectKeysResponse)
+	err := c.cc.Invoke(ctx, "/proto.Service/CheckKeys", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
 	RollDice(context.Context, *Commitment) (*DiceResponse, error)
+	CheckKeys(context.Context, *CommitmentKeys) (*CorrectKeysResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedServiceServer struct {
 
 func (UnimplementedServiceServer) RollDice(context.Context, *Commitment) (*DiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollDice not implemented")
+}
+func (UnimplementedServiceServer) CheckKeys(context.Context, *CommitmentKeys) (*CorrectKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckKeys not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -88,6 +102,24 @@ func _Service_RollDice_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_CheckKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitmentKeys)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).CheckKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Service/CheckKeys",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).CheckKeys(ctx, req.(*CommitmentKeys))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RollDice",
 			Handler:    _Service_RollDice_Handler,
+		},
+		{
+			MethodName: "CheckKeys",
+			Handler:    _Service_CheckKeys_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

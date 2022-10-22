@@ -56,11 +56,13 @@ func (n *Node) ConnectToPeer(portOfOtherPeers string, cred credentials.Transport
 	}
 }
 
+// Generate a random dice roll for Alice, and globally assign this value.
 func AliceDiceRoll() int {
 	PrevAliceDiceRoll = util.GenerateRandDiceRoll()
 	return PrevAliceDiceRoll
 }
 
+// Generate a random dice roll for Bob, and globally assign this value.
 func BobDiceRoll() int {
 	PrevBobDiceRoll = util.GenerateRandDiceRoll()
 	return PrevBobDiceRoll

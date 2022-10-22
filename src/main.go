@@ -75,7 +75,7 @@ func main() {
 		}
 	}
 
-	time.Sleep(4 * time.Second)
+	time.Sleep(4 * time.Second) // have the final result appear at the same time for Alice and Bob
 	println(util.Green + "\n### FINAL COMMON DICE RESULT" + util.Reset)
 	log.Printf("Result: %v", util.ExclusiveOrOnTwoDiceResultsMod6Plus1(a, b))
 	

@@ -1,5 +1,7 @@
 package utilities
 
+// Utility functions that are primarily used in the `node.go` file.
+
 import (
 	"crypto/sha256"
 	"encoding/hex"

@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-const bitStrLength = 256
+const BIT_STR_LENGTH = 256
 var prevCommitment string
 var PrevAliceDiceRoll, PrevBobDiceRoll int
 
@@ -76,7 +76,7 @@ func (n *Node) InitiateRequests(c proto.ServiceClient) {
 	log.Printf("%s rolled dice is %v", n.Name, PrevAliceDiceRoll)
 
 	// Random k-bit string
-	randStr := util.GenerateRandBitStr(bitStrLength)
+	randStr := util.GenerateRandBitStr(BIT_STR_LENGTH)
 	
 	// Create commitment
 	commCat := util.ConcatStrings(strconv.Itoa(PrevAliceDiceRoll), randStr)
